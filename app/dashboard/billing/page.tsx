@@ -1,6 +1,10 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
+import { loadTossPayments } from "@tosspayments/payment-sdk";
+import { nanoid } from "nanoid";
 
 const featureItems = [
   { name: "Lorem Ipsum something" },
@@ -9,6 +13,26 @@ const featureItems = [
   { name: "Lorem Ipsum something" },
   { name: "Lorem Ipsum something" },
 ];
+
+const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "";
+
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  const tossPayments = await loadTossPayments(clientKey);
+
+  try {
+    tossPayments.requestPayment("카드", {
+      amount: 10000,
+      orderId: nanoid(),
+      orderName: "유료결제",
+      successUrl: `${window.location.origin}/success`,
+      failUrl: `${window.location.origin}/fail`,
+    });
+  } catch (error) {
+    console.error("Error requesting payment:", error);
+  }
+};
 
 export default function BillingPage() {
   return (
@@ -21,10 +45,11 @@ export default function BillingPage() {
             </h3>
           </div>
           <div className="mt-4 flex items-baseline text-5xl font-extrabold">
-            $30<span className="ml-1 text-xl text-muted-foreground">/mo</span>
+            10,000
+            <span className="ml-1 text-xl text-muted-foreground">/원</span>
           </div>
           <p className="mt-5 text-sm text-muted-foreground">
-            한 달에 30달러로 원하는 만큼 노트를 작성하세요!
+            한 달에 10,000원으로 원하는 만큼 노트를 작성하세요!
           </p>
         </CardContent>
         <div className="flex-1 flex flex-col justify-between px-6 pt-6 pb-8 bg-secondary rounded-lg m-1 space-y-6 sm:p-10 sm:pt-6">
@@ -38,8 +63,10 @@ export default function BillingPage() {
               </li>
             ))}
           </ul>
-          <form className="w-full">
-            <Button className="w-full">결제하기</Button>
+          <form onSubmit={handleSubmit} className="w-full">
+            <Button type="submit" className="w-full">
+              결제하기
+            </Button>
           </form>
         </div>
       </Card>
